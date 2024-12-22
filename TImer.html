@@ -117,40 +117,39 @@
 
         // 倒數計時功能
         let countdownDate = null;
-        let timerInterval = null;
+let timerInterval = null;
 
-        function startCountdownTimer() {
-            if (!countdownDate) {
-                countdownDate = new Date().getTime() + 90 * 60 * 1000; // 90分鐘倒數
-            }
+function startCountdownTimer() {
+    if (!countdownDate) {
+        countdownDate = new Date().getTime() + 90 * 60 * 1000; // 設置倒數 90 分鐘
+    }
 
-            timerInterval = setInterval(() => {
-                const now = new Date().getTime();
-                const distance = countdownDate - now;
+    timerInterval = setInterval(() => {
+        const now = new Date().getTime();
+        const distance = countdownDate - now;
 
-                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-                document.getElementById('timer').innerHTML = `${hours}:${minutes}:${seconds}`;
+        document.getElementById('timer').innerHTML = `${hours}:${minutes}:${seconds}`;
 
-                if (distance < 0) {
-                    clearInterval(timerInterval);
-                    document.getElementById('timer').innerHTML = 'Time is up!';
-                }
-            }, 1000);
-        }
-
-        function pauseCountdownTimer() {
+        if (distance <= 0) {
             clearInterval(timerInterval);
-            timerInterval = null;
+            document.getElementById('timer').innerHTML = 'Time is up!';
         }
+    }, 1000);
+}
 
-        function resetCountdownTimer() {
-            clearInterval(timerInterval);
-            countdownDate = null;
-            document.getElementById('timer').innerHTML = 'Waiting to start...';
-        }
+function pauseCountdownTimer() {
+    clearInterval(timerInterval);
+}
+
+function resetCountdownTimer() {
+    clearInterval(timerInterval);
+    countdownDate = null;
+    document.getElementById('timer').innerHTML = 'Waiting to start...';
+}
     </script>
 </body>
 </html>
