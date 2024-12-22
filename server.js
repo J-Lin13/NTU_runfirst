@@ -70,3 +70,8 @@ function broadcast(data) {
         }
     });
 }
+
+setInterval(() => {
+    broadcast({ type: 'TEST_MESSAGE', message: 'This is a test broadcast' });
+    console.log('Test broadcast sent');
+}, 5000); // 每 5 秒廣播一次測試消息
