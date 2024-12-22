@@ -64,7 +64,27 @@
 
     <script>
         // 建立 WebSocket 連接
-        const socket = new WebSocket(`wss://${window.location.host}`);
+        const socket = new WebSocket('ws://localhost:8080'); // 確保端口與伺服器一致
+        
+        socket.addEventListener('open', () => {
+            console.log('Connected to WebSocket server');
+        });
+        
+        socket.addEventListener('message', (event) => {
+            const data = JSON.parse(event.data);
+        
+            if (data.type === 'START_COUNTDOWN') {
+                startCountdownTimer();
+            } else if (data.type === 'PAUSE_COUNTDOWN') {
+                pauseCountdownTimer();
+            } else if (data.type === 'RESET_COUNTDOWN') {
+                resetCountdownTimer();
+            } else if (data.type === 'UPDATE_TIMER') {
+                updateTimerDisplay(data.timeLeft);
+            } else if (data.type === 'TIME_UP') {
+                document.getElementById('timer').innerHTML = 'Time is up!';
+            }
+        });
 
         socket.addEventListener('open', () => {
             console.log('WebSocket connection established');
