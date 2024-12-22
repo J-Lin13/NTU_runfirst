@@ -71,18 +71,14 @@
         });
         
         socket.addEventListener('message', (event) => {
-            const data = JSON.parse(event.data);
-        
+            const data = JSON.parse(event.data); // 確保解析 JSON 數據
+    
             if (data.type === 'START_COUNTDOWN') {
-                startCountdownTimer();
+                    startCountdownTimer(); // 啟動倒數
             } else if (data.type === 'PAUSE_COUNTDOWN') {
-                pauseCountdownTimer();
+                pauseCountdownTimer(); // 暫停倒數
             } else if (data.type === 'RESET_COUNTDOWN') {
-                resetCountdownTimer();
-            } else if (data.type === 'UPDATE_TIMER') {
-                updateTimerDisplay(data.timeLeft);
-            } else if (data.type === 'TIME_UP') {
-                document.getElementById('timer').innerHTML = 'Time is up!';
+                resetCountdownTimer(); // 重設倒數
             }
         });
 
