@@ -97,7 +97,6 @@ function sendCommand(command) {
     }
 }
 
-let countdownInterval;
 
 function startCountdownTimer() {
     console.log('Countdown started');
