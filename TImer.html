@@ -72,13 +72,17 @@
         
         socket.addEventListener('message', (event) => {
             const data = JSON.parse(event.data); // 確保解析 JSON 數據
-    
+        
             if (data.type === 'START_COUNTDOWN') {
-                    startCountdownTimer(); // 啟動倒數
+                startCountdownTimer(); // 啟動倒數
             } else if (data.type === 'PAUSE_COUNTDOWN') {
                 pauseCountdownTimer(); // 暫停倒數
             } else if (data.type === 'RESET_COUNTDOWN') {
                 resetCountdownTimer(); // 重設倒數
+            } else if (data.type === 'UPDATE_TIMER') {
+                updateTimerDisplay(data.timeLeft); // 更新倒數時間
+            } else if (data.type === 'TIME_UP') {
+                document.getElementById('timer').innerHTML = 'Time is up!';
             }
         });
 
