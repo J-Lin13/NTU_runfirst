@@ -62,12 +62,6 @@ function startCountdown() {
     }, 1000);
 }
 
-<div>
-    <button onclick="sendCommand('START')">開始計時</button>
-    <button onclick="sendCommand('PAUSE')">暫停計時</button>
-    <button onclick="sendCommand('RESET')">重設計時</button>
-</div>
-
 const socket = new WebSocket(`ws://${window.location.host}`);
 
 socket.addEventListener('open', () => {
