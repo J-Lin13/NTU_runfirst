@@ -1,121 +1,72 @@
 const WebSocket = require('ws');
 
-// 建立 WebSocket 伺服器
-const server = new WebSocket.Server({ port: 8080 });
+const wss = new WebSocket.Server({ port: 8080 }, () => {
+    console.log('WebSocket server started on ws://localhost:8080');
+});
 
-let countdownInterval;
-let countdownTime = 90 * 60 * 1000; // 預設 90 分鐘
-let startTime = null;
+let countdownTime = 90 * 60 * 1000; // 倒數90分鐘
+let countdownInterval = null;
 
-server.on('connection', (socket) => {
-    console.log('Client connected');
+wss.on('connection', (ws) => {
+    console.log('New client connected');
 
-    // 收到管理者的指令
-    socket.on('message', (message) => {
-        const command = message.toString();
-
-        if (command === 'START') {
-            startTime = Date.now();
-            clearInterval(countdownInterval);
-            broadcast('START_COUNTDOWN');
-            startCountdown();
-        } else if (command === 'PAUSE') {
-            clearInterval(countdownInterval);
-            countdownTime -= Date.now() - startTime;
-            broadcast('PAUSE_COUNTDOWN');
-        } else if (command === 'RESET') {
-            clearInterval(countdownInterval);
-            countdownTime = 90 * 60 * 1000; // 重設為 90 分鐘
-            broadcast('RESET_COUNTDOWN');
+    // 當收到訊息時處理指令
+    ws.on('message', (message) => {
+        console.log(`Received message: ${message}`);
+        if (message === 'START') {
+            startCountdown(ws);
+        } else if (message === 'PAUSE') {
+            pauseCountdown();
+        } else if (message === 'RESET') {
+            resetCountdown(ws);
         }
     });
 
-    // 當客戶端斷開連接
-    socket.on('close', () => {
+    ws.on('close', () => {
         console.log('Client disconnected');
     });
 });
 
-// 廣播給所有客戶端
+// 啟動倒數
+function startCountdown(ws) {
+    clearInterval(countdownInterval);
+    const startTime = Date.now();
+    countdownInterval = setInterval(() => {
+        const elapsedTime = Date.now() - startTime;
+        const timeLeft = countdownTime - elapsedTime;
+
+        if (timeLeft <= 0) {
+            clearInterval(countdownInterval);
+            broadcast({ type: 'TIME_UP' });
+        } else {
+            broadcast({
+                type: 'UPDATE_TIMER',
+                timeLeft,
+            });
+        }
+    }, 1000);
+
+    broadcast({ type: 'START_COUNTDOWN' });
+}
+
+// 暫停倒數
+function pauseCountdown() {
+    clearInterval(countdownInterval);
+    broadcast({ type: 'PAUSE_COUNTDOWN' });
+}
+
+// 重設倒數
+function resetCountdown(ws) {
+    clearInterval(countdownInterval);
+    countdownTime = 90 * 60 * 1000; // 重設為90分鐘
+    broadcast({ type: 'RESET_COUNTDOWN' });
+}
+
+// 廣播訊息給所有客戶端
 function broadcast(data) {
-    server.clients.forEach((client) => {
+    wss.clients.forEach((client) => {
         if (client.readyState === WebSocket.OPEN) {
-            client.send(data);
+            client.send(JSON.stringify(data));
         }
     });
 }
-
-// 倒數計時邏輯
-function startCountdown() {
-    countdownInterval = setInterval(() => {
-        const timeLeft = countdownTime - (Date.now() - startTime);
-        if (timeLeft <= 0) {
-            clearInterval(countdownInterval);
-            broadcast('TIME_UP');
-        } else {
-            const timeData = {
-                type: 'UPDATE_TIMER',
-                timeLeft,
-            };
-            broadcast(JSON.stringify(timeData));
-        }
-    }, 1000);
-}
-
-const socket = new WebSocket(`ws://${window.location.host}`);
-
-socket.addEventListener('open', () => {
-    console.log('WebSocket connection established');
-});
-
-socket.addEventListener('message', (event) => {
-    const data = event.data;
-
-    if (data === 'START_COUNTDOWN') {
-        startCountdownTimer();
-    } else if (data === 'PAUSE_COUNTDOWN') {
-        pauseCountdownTimer();
-    } else if (data === 'RESET_COUNTDOWN') {
-        resetCountdownTimer();
-    } else {
-        try {
-            const parsedData = JSON.parse(data);
-            if (parsedData.type === 'UPDATE_TIMER') {
-                updateTimerDisplay(parsedData.timeLeft);
-            }
-        } catch (e) {
-            console.error('Invalid message format:', data);
-        }
-    }
-});
-
-function sendCommand(command) {
-    if (socket.readyState === WebSocket.OPEN) {
-        socket.send(command);
-    } else {
-        console.error('WebSocket is not open');
-    }
-}
-
-
-function startCountdownTimer() {
-    console.log('Countdown started');
-}
-
-function pauseCountdownTimer() {
-    console.log('Countdown paused');
-    clearInterval(countdownInterval);
-}
-
-function resetCountdownTimer() {
-    console.log('Countdown reset');
-    document.getElementById('timer').innerHTML = 'Waiting to start...';
-}
-
-function updateTimerDisplay(timeLeft) {
-    const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
-    document.getElementById('timer').innerHTML = `${hours}:${minutes}:${seconds}`;
-}
-
