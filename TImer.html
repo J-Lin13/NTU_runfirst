@@ -43,12 +43,24 @@
             color: red;
             margin: 0;
         }
+        .control-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
     </style>
 </head>
 <body>
     <button onclick="window.location.href='map.html'">Go to Map</button>
     <h1>NTU Run for Money Countdown</h1>
     <div id="timer">Waiting to start...</div>
+
+    <!-- 管理者控制按鈕 -->
+    <div class="control-buttons">
+        <button onclick="sendCommand('START')">開始計時</button>
+        <button onclick="sendCommand('PAUSE')">暫停計時</button>
+        <button onclick="sendCommand('RESET')">重設計時</button>
+    </div>
 
     <script>
         // 建立 WebSocket 連接
@@ -60,8 +72,13 @@
 
         socket.addEventListener('message', (event) => {
             console.log('Message from server:', event.data);
+
             if (event.data === 'START_COUNTDOWN') {
                 startCountdownTimer();
+            } else if (event.data === 'PAUSE_COUNTDOWN') {
+                pauseCountdownTimer();
+            } else if (event.data === 'RESET_COUNTDOWN') {
+                resetCountdownTimer();
             }
         });
 
@@ -73,19 +90,25 @@
             console.log('WebSocket connection closed');
         });
 
-        // 發送 START 指令
-        function startCountdown() {
+        // 發送管理指令
+        function sendCommand(command) {
             if (socket.readyState === WebSocket.OPEN) {
-                socket.send('START');
+                socket.send(command);
             } else {
                 console.error('WebSocket is not open');
             }
         }
 
         // 倒數計時功能
+        let countdownDate = null;
+        let timerInterval = null;
+
         function startCountdownTimer() {
-            const countdownDate = new Date().getTime() + 90 * 60 * 1000; // 90分鐘倒數
-            const timerInterval = setInterval(() => {
+            if (!countdownDate) {
+                countdownDate = new Date().getTime() + 90 * 60 * 1000; // 90分鐘倒數
+            }
+
+            timerInterval = setInterval(() => {
                 const now = new Date().getTime();
                 const distance = countdownDate - now;
 
@@ -100,6 +123,17 @@
                     document.getElementById('timer').innerHTML = 'Time is up!';
                 }
             }, 1000);
+        }
+
+        function pauseCountdownTimer() {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+
+        function resetCountdownTimer() {
+            clearInterval(timerInterval);
+            countdownDate = null;
+            document.getElementById('timer').innerHTML = 'Waiting to start...';
         }
     </script>
 </body>
